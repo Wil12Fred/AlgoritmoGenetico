@@ -42,6 +42,7 @@ struct Represent{
 		while (i < cromosomas.size()){
 			if (cromosomas[i] != B.cromosomas[i])
 				return false;
+			i++;
 		}
 		return true;
 	}

@@ -48,6 +48,6 @@ struct Practica2: Problema<Indiv>{
 		double x1,x2;
 		x1=individuo.representacion.getX().first;
 		x2=individuo.representacion.getX().second;
-		return func(x1,x2);
+		return sqrt(func(x1,x2));
 	}
 };

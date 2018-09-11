@@ -13,9 +13,9 @@ using namespace std;
 
 int main(int argc, char **argv){
 	SeedXorShift();
-	Practica2<Individuo> P2(100,100,18);
-	//Genetico<Practica2<Individuo> > G(&P2,0.3,0.2,false); <-- sin elitismo
-	Genetico<Practica2<Individuo> > G(&P2,0.3,0.2,true);
+	Practica2<Individuo> P2(200,100,16);
+	Genetico<Practica2<Individuo> > G(&P2,0.4,0.2,false);// <-- sin elitismo
+	//Genetico<Practica2<Individuo> > G(&P2,0.3,0.2,true);
 	Individuo mejor=G.iniciar(false);
 	return 0;
 }
