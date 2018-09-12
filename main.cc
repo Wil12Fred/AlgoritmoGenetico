@@ -19,7 +19,7 @@ int main(int argc, char **argv){
 	Individuo mejorg=G.iniciar(false);*/
 
 	//Algoritmo genetico con eletismo
-	Practica2<Individuo> P2g(200,300,18);
+	Practica2<Individuo> P2g(200,300,24);
 	Genetico<Practica2<Individuo> > G(&P2g,0.3,0.2,true);
 	Individuo mejorg=G.iniciar(false);
 	return 0;
