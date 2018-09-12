@@ -13,9 +13,14 @@ using namespace std;
 
 int main(int argc, char **argv){
 	SeedXorShift();
-	Practica2<Individuo> P2(100,100,18);
-	//Genetico<Practica2<Individuo> > G(&P2,0.3,0.2,false); <-- sin elitismo
-	Genetico<Practica2<Individuo> > G(&P2,0.3,0.2,true);
-	Individuo mejor=G.iniciar(false);
+	//Algoritmo genetico
+	/*Practica2<Individuo> P2g(200,300,18);
+	Genetico<Practica2<Individuo> > G(&P2g,0.3,0.2,false);
+	Individuo mejorg=G.iniciar(false);*/
+
+	//Algoritmo genetico con eletismo
+	Practica2<Individuo> P2g(200,300,18);
+	Genetico<Practica2<Individuo> > G(&P2g,0.3,0.2,true);
+	Individuo mejorg=G.iniciar(false);
 	return 0;
 }

@@ -18,6 +18,7 @@ struct Individuo{
 		return (representacion==B.representacion);
 	}
 	Individuo cruzamiento(const Individuo* B){
+		//printf("cruzando\n");
 		Represent nuevo(representacion.tamano());
 		bool cromosoma_padre=XorShift(2);
 		int tamano_minimo=3;
@@ -53,17 +54,22 @@ struct Individuo{
 		nuevo.cromosomas[findice_mutacion]=cromosoma_aleatorio;
 	}
 	void mutacion_alter(Represent& nuevo, int n){
+		set<int> S;
 		for (int i=0;i<n;i++){
-			nuevo.cromosomas[XorShift(representacion.tamano())]=XorShift(2);
+			//nuevo.cromosomas[XorShift(representacion.tamano())]=XorShift(2);
+			int pos=XorShift(representacion.tamano());
+			while (S.find(pos)!=S.end()){
+				pos=XorShift(representacion.tamano()); 
+			}
+			nuevo.cromosomas[pos]=!(nuevo.cromosomas[pos]);
+			S.insert(pos);
 		}
 	}
 	Individuo mutacion(){
 		Represent nuevo(representacion.tamano());
 		nuevo=representacion;
-		//swap
-		mutacion_swap(nuevo);
-		//alter
-		mutacion_alter(nuevo, XorShift(2));
+		//mutacion_swap(nuevo); //swap
+		mutacion_alter(nuevo, XorShift(2)+1); //alter
 		return Individuo(nuevo);
 	}
 	bool operator <(const Individuo& B)const{

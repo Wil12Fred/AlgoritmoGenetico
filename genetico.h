@@ -10,6 +10,7 @@ struct Genetico{
 	double probabilidad_de_mutacion;
 	double aptitud_total;
 	bool elitismo;
+
 	Genetico(P* p,double c, double m,bool e=false){//R
 		aptitud_total=0;
 		poblacion = new set<Indiv>();
@@ -19,6 +20,7 @@ struct Genetico{
 		elitismo=e;
 		crear_poblacion();
 	}
+
 	void crear_poblacion(){//R
 		while(poblacion->size()<problema->tamano_de_poblacion){
 			Indiv nuevo_individuo;
@@ -28,10 +30,12 @@ struct Genetico{
 			poblacion->insert(nuevo_individuo);
 		}
 	}
+
 	bool seleccion_rueda_de_ruleta(double aptitud){//R
 		double ruleta = problema->valor_aleatorio(aptitud_total);
 		return ruleta<aptitud;
 	}
+
 	void seleccion_de_individuos(map<int,Indiv*>& individuos_a_cruzar){//R
 		int i=0;
 		for (auto it=poblacion->begin();it!=poblacion->end();it++){
@@ -40,6 +44,7 @@ struct Genetico{
 			}
 		}
 	}
+
 	Indiv* seleccionar_padre(map<int,Indiv*>& individuos_a_cruzar){//R
 		int aleatorio=problema->valor_aleatorio((int)individuos_a_cruzar.size());
 		auto it=individuos_a_cruzar.lower_bound(aleatorio);
@@ -50,17 +55,37 @@ struct Genetico{
 		individuos_a_cruzar.erase(it);
 		return padre;
 	}
+
 	void cruzar_individuos(){//R
 		map<int,Indiv*> individuos_a_cruzar;
 		seleccion_de_individuos(individuos_a_cruzar);
 		while (individuos_a_cruzar.size()>1){
 			Indiv* padre = seleccionar_padre(individuos_a_cruzar);
-			Indiv hijo=padre->cruzamiento(seleccionar_padre(individuos_a_cruzar));
-			hijo.aptitud=problema->aptitud(hijo);
-			aptitud_total+=hijo.aptitud;
-			poblacion->insert(hijo);
+			Indiv* padre2 = seleccionar_padre(individuos_a_cruzar);
+			if(!elitismo){
+				Indiv hijo=padre->cruzamiento(padre2);
+				hijo.aptitud=problema->aptitud(hijo);
+				aptitud_total+=hijo.aptitud;
+				poblacion->insert(hijo);
+				Indiv hijo2=padre2->cruzamiento(padre);
+				hijo2.aptitud=problema->aptitud(hijo2);
+				aptitud_total+=hijo2.aptitud;
+				poblacion->insert(hijo2);
+				if(poblacion->size()-problema->tamano_de_poblacion==2){
+					poblacion->erase(*padre);
+					poblacion->erase(*padre2);
+				} else if (poblacion->size()-problema->tamano_de_poblacion==1){
+					poblacion->erase(*padre);
+				}
+			} else {
+				Indiv hijo=padre->cruzamiento(padre2);
+				hijo.aptitud=problema->aptitud(hijo);
+				aptitud_total+=hijo.aptitud;
+				poblacion->insert(hijo);
+			}
 		}
 	}
+
 	Indiv getIndividuo(int i){
 		auto it=poblacion->begin();
 		for (int j=0;j<i;j++){
@@ -68,44 +93,59 @@ struct Genetico{
 		}
 		return *it;
 	}
+
 	void mutar_individuos(){//R
-		vector<Indiv> Eliminar;
-		vector<Indiv> Nuevos;
+		set<Indiv> Eliminar;
+		set<Indiv> Nuevos;
 		for(auto it=poblacion->begin();it!=poblacion->end();it++){
 			double aleatorio=problema->valor_aleatorio(double(1));
 			if(aleatorio<probabilidad_de_mutacion){
 				Indiv mutacion=Indiv(*it).mutacion();
 				mutacion.aptitud=problema->aptitud(mutacion);
-				Nuevos.push_back(mutacion);
 				if(!elitismo){
-					Eliminar.push_back(*it);
+					if(poblacion->find(mutacion)==poblacion->end() && Nuevos.find(mutacion)==Nuevos.end()){
+						Nuevos.insert(mutacion);
+						Eliminar.insert(*it);
+					} else {
+						if(Eliminar.find(mutacion)!=Eliminar.end()){
+							Eliminar.erase(mutacion);
+							Eliminar.insert(*it);
+						}
+					}
+				} else {
+					Nuevos.insert(mutacion);
 				}
 			}
 		}
-		for (int i=0;i<Nuevos.size();i++){
-			if(Eliminar.size())
-				poblacion->erase(Eliminar[i]);
-			poblacion->insert(Nuevos[i]);
+		for (auto it=Nuevos.begin();it!=Nuevos.end();it++){
+			poblacion->insert(*it);
+		}
+		for (auto it=Eliminar.begin();it!=Eliminar.end();it++){
+			poblacion->erase(*it);
 		}
 	}
-	Indiv seleccion_de_eliminacion(){
+
+	virtual Indiv seleccion_de_eliminacion(){
 		if(elitismo)
 			return *(poblacion->begin());
 		else
 			return getIndividuo(XorShift(poblacion->size()));
 	}
-	void ajustar_poblacion(){//R
+
+	virtual void ajustar_poblacion(){//R
 		while(poblacion->size()>problema->tamano_de_poblacion){
 			Indiv condenado=seleccion_de_eliminacion();
 			aptitud_total-=condenado.aptitud;
 			poblacion->erase(condenado);
 		}
 	}
-	void generar_nueva_poblacion(){//R
+
+	virtual void generar_nueva_poblacion(){//R
 		cruzar_individuos();
 		mutar_individuos();
 		ajustar_poblacion();
 	}
+
 	Indiv obtenerMejor(){
 		Indiv mejor=*(poblacion->rbegin());
 		for (auto it=poblacion->begin();it!=poblacion->end();it++){
@@ -114,9 +154,9 @@ struct Genetico{
 			}
 		}
 		pair<double,double> X=mejor.representacion.getX();
-		cout << "X = (" << X.first << ", " << X.second  << "), f(X) = " << mejor.aptitud << endl;
 		return mejor;
 	}
+
 	Indiv iniciar(bool limite=true){//R
 		Indiv mejor;
 		generar_nueva_poblacion();
@@ -131,15 +171,21 @@ struct Genetico{
 			if(mejor.aptitud>mejor_aptitud){
 				mejor_aptitud=mejor.aptitud;
 				past_modification=i;
+				pair<double,double> X=mejor.representacion.getX();
+				cout << i << "; " << this->problema->func(X.first,X.second) << endl;
 			} else if(mejor.aptitud==mejor_aptitud){
-					if(i-past_modification>15)
+					if(i-past_modification>10)
 						estable=true;
 			} else {
+				pair<double,double> X=mejor.representacion.getX();
+				cout << i << "; " << this->problema->func(X.first,X.second) << endl;
 				past_modification=i;
 			}
 			i++;
 		}
-		cout << i << " iteraciones" << endl;
+		pair<double,double> X=mejor.representacion.getX();
+		cout << i << "; " << this->problema->func(X.first,X.second) << endl;
+		//cout << i << " iteraciones" << endl;
 		return mejor;
 	}
 };

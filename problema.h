@@ -41,13 +41,12 @@ struct Practica2: Problema<Indiv>{
 	double func(double x1, double x2){
 		double x=max(sqrt(x1*x1+x2*x2),eps);
 		double z=sin(pi*x)/(pi*x);
-		//cout << x1 << " " << x2 << " " << z*z << endl;
 		return z*z;
 	}
 	double aptitud(Indiv& individuo){
 		double x1,x2;
 		x1=individuo.representacion.getX().first;
 		x2=individuo.representacion.getX().second;
-		return func(x1,x2);
+		return (func(x1,x2)+1)*1000;//(func(x1,x2));
 	}
 };
